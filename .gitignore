@@ -4,3 +4,5 @@ build
 .devcontainer
 bin
 .idea
+gradle
+gradlew*
