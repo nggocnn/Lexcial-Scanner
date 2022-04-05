@@ -1,9 +1,6 @@
 package com.lewwcom.lexicalscanner;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PushbackReader;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -13,7 +10,7 @@ public class LexicalScanner {
 
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s");
 
-    private State initialState;
+    private final State initialState;
 
     /**
      * Constructor of Lexical Scanner.
@@ -72,10 +69,13 @@ public class LexicalScanner {
      * Scan, tokenize input string and print out tokens.
      *
      * @param input input stream.
-     * @throws IOException
+     * @param output output stream.
+     * @throws IOException scan error.
      */
-    public void scan(InputStream input) throws IOException {
+    public void scan(InputStream input, OutputStream output) throws IOException {
         PushbackReader reader = new PushbackReader(new InputStreamReader(input));
+        PrintStream printStream = new PrintStream(output);
+
         State state = this.initialState;
         StringBuilder token = new StringBuilder();
 
@@ -87,7 +87,7 @@ public class LexicalScanner {
                 token.append(c);
                 state = nextState;
             } else {
-                handleNoNextState(state, token.toString(), c);
+                handleNoNextState(state, token.toString(), c, printStream);
                 if (state != this.initialState) {
                     reader.unread(c);
                     state = this.initialState;
@@ -97,8 +97,11 @@ public class LexicalScanner {
         }
 
         if (token.length() > 0) {
-            handleNoNextState(state, token.toString(), '0');
+            handleNoNextState(state, token.toString(), '0', printStream);
         }
+
+        reader.close();
+        printStream.close();
     }
 
     /**
@@ -108,9 +111,10 @@ public class LexicalScanner {
      * @param currentToken current token.
      * @param nextChar next character.
      */
-    private void handleNoNextState(State currentState, String currentToken, char nextChar) {
+    private void handleNoNextState(State currentState, String currentToken, char nextChar, PrintStream printStream) {
         if (currentState.isEnd()) {
             System.out.println(currentToken);
+            printStream.println(currentToken);
         } else if (!isWhitespace(nextChar)) {
             System.err.println("Error: current string is '" + currentToken + "', but next char is "
                     + nextChar);
