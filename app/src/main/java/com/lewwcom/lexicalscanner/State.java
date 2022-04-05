@@ -10,17 +10,20 @@ public class State {
 
     private boolean isEnd; // set this state to be end state
     private boolean haveNextState; // set this state to have next state
+    private String stateName;
     private List<Transition> transitions = new ArrayList<>(); // transitions list
 
     /**
      * State Constructor.
      *
-     * @param isEnd
+     * @param isEnd If the current state is an end state
+     * @param haveNextState If the current state have edges going out
+     * @param stateName The textual name of the state
      */
-    public State(boolean isEnd, boolean haveNextState) {
+    public State(boolean isEnd, boolean haveNextState, String stateName) {
         this.isEnd = isEnd;
         this.haveNextState = haveNextState;
-
+        this.stateName = stateName;
     }
 
     /**
@@ -47,6 +50,8 @@ public class State {
     public boolean haveNextState() {
         return haveNextState;
     }
+
+    public String stateName() { return stateName; }
 
     /**
      * Add transition input into transitions list.
