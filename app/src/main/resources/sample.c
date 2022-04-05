@@ -1,4 +1,4 @@
-float exampleFunction(boolean var1, int var2) {
+float exampleFunction(boolean var1, int var2)
 	if(var1) {
 		return (float)var2;
 	} else {
@@ -11,6 +11,8 @@ int main() {
 	boolean c = !b;
 	int d = 4420;
 	float r = exampleFunction(c, d);
-	asdff a = 1;
+	float a = 1;
+	string s = "ab
+	c";
 	return 0;
 }

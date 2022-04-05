@@ -113,8 +113,8 @@ public class LexicalScanner {
      */
     private void handleNoNextState(State currentState, String currentToken, char nextChar, PrintStream printStream) {
         if (currentState.isEnd()) {
-            System.out.println(currentToken);
-            printStream.println(currentToken);
+            System.out.println("- " + currentToken.replace("\n", "\\n"));
+            printStream.println(currentToken.replace("\n", "\\n"));
         } else if (!isWhitespace(nextChar)) {
             System.err.println("Error: current string is '" + currentToken + "', but next char is "
                     + nextChar);
