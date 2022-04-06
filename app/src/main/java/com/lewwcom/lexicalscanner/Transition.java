@@ -12,6 +12,7 @@ public class Transition {
 
     /**
      * Transition Constructor.
+     *
      * @param matcher matcher to check next character.
      * @param nextState next state when next character matches this transition input.
      */
@@ -22,6 +23,7 @@ public class Transition {
 
     /**
      * Check whether next character is match with transition input or not.
+     *
      * @param c next character.
      * @return next character is match with transition input.
      */
@@ -29,10 +31,6 @@ public class Transition {
         return pattern.matcher(Character.toString(c)).matches();
     }
 
-    /**
-     * Get next transition state.
-     * @return next state.
-     */
     public State getNextState() {
         return nextState;
     }

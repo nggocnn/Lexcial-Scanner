@@ -6,14 +6,19 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PushbackReader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class LexicalScanner {
 
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s");
+    private static final Pattern VERTICAL_WHITESPACE_PATTERN = Pattern.compile("\\v");
 
     private final State initialState;
 
@@ -23,11 +28,10 @@ public class LexicalScanner {
      * @param input input stream of automaton file.
      */
     public LexicalScanner(InputStream input) {
-        Scanner scanner = new Scanner(input); // Automaton file scanner
+        Scanner scanner = new Scanner(input);
 
-        // State list
-        int totalStates = scanner.nextInt(); // Get total number of states in transition table
-        int initialStateIndex = scanner.nextInt(); // Set the initial state's index
+        int totalStates = scanner.nextInt();
+        int initialStateIndex = scanner.nextInt();
         scanner.nextLine();
 
         // Get all end states
@@ -44,23 +48,19 @@ public class LexicalScanner {
         int[] haveNextStates = Stream.of(haveNextStatesLine.split("\\s"))
                 .mapToInt(Integer::parseInt).sorted().toArray();
 
-        // Search and set which state is an end state
+        // Init state list
         State[] states = new State[totalStates];
         Arrays.setAll(states, i -> {
             int endStateIndex = Arrays.binarySearch(endStates, i);
             boolean isEnd = endStateIndex >= 0;
             boolean haveNextState = Arrays.binarySearch(haveNextStates, i) >= 0;
-            String stateName = isEnd ? endStatesNames[endStateIndex] : "invalid";
+            String stateName = isEnd ? endStatesNames[endStateIndex] : "Invalid";
             return new State(isEnd, haveNextState, stateName);
         });
-
-        // Set initial state
         initialState = states[initialStateIndex];
 
         // Parse input for state transition
         String[] regexs = scanner.nextLine().trim().split("\\s+");
-
-        // Parse state transition index
         for (State state : states) {
             if (state.haveNextState()) {
                 for (String regex : regexs) {
@@ -72,8 +72,7 @@ public class LexicalScanner {
                 }
             }
         }
-
-        scanner.close(); // close automaton file scanner
+        scanner.close();
     }
 
     /**
@@ -85,63 +84,70 @@ public class LexicalScanner {
      */
     public void scan(InputStream input, OutputStream output) throws IOException {
         PushbackReader reader = new PushbackReader(new InputStreamReader(input));
-        PrintStream printStream = new PrintStream(output);
 
         State state = this.initialState;
         StringBuilder token = new StringBuilder();
+        Set<String> tokens = new LinkedHashSet<>();
+        List<String> errors = new ArrayList<>();
+        int line = 1;
 
         for (int nextChar = reader.read(); nextChar != -1; nextChar = reader.read()) {
             char c = (char) nextChar;
-
             State nextState = state.nextState(c);
             if (nextState != null) {
                 token.append(c);
                 state = nextState;
             } else {
-                handleNoNextState(state, token.toString(), c, printStream);
+                handleNoNextState(state, token.toString(), c, line, tokens, errors);
+                token.setLength(0);
                 if (state != this.initialState) {
                     reader.unread(c);
                     state = this.initialState;
+                    continue;
                 }
-                token.setLength(0);
+            }
+            if (match(c, VERTICAL_WHITESPACE_PATTERN)) {
+                ++line;
             }
         }
-
         if (token.length() > 0) {
-            handleNoNextState(state, token.toString(), '0', printStream);
+            handleNoNextState(state, token.toString(), Character.MIN_VALUE, line, tokens, errors);
         }
 
+        toOutput(output, tokens, errors);
         reader.close();
-        printStream.close();
     }
 
-    /**
-     * Handle whether next state is available or not.
-     *
-     * @param currentState current state.
-     * @param currentToken current token.
-     * @param nextChar next character.
-     */
-    private void handleNoNextState(State currentState, String currentToken, char nextChar,
-            PrintStream printStream) {
-        if (currentState.isEnd()) {
-            String beautifiedToken = currentToken.replace("\n", "\\n");
-            System.out.printf("- %s (%s)%n", beautifiedToken, currentState.stateName());
-            printStream.printf("%s (%s)%n", beautifiedToken, currentState.stateName());
-        } else if (!(isWhitespace(nextChar) && currentState == initialState)) {
-            System.err.println("Error: current string is '" + currentToken + "', but next char is "
-                    + nextChar);
+    // TODO: javadoc
+    private void handleNoNextState(State state, String token, char nextChar, int line,
+            Set<String> tokens, List<String> errors) {
+        if (state.isEnd()) {
+            String beautifiedToken = token.replace("\n", "\\n");
+            tokens.add(String.format("%s (%s)", beautifiedToken, state.getStateName()));
+
+        } else if (!(match(nextChar, WHITESPACE_PATTERN) && state == initialState)) {
+            String beautifiedChar = Character.toString(nextChar).replace("\n", "\\n");
+            errors.add(String.format("Error[Ln %d]: current string is: '%s', but next char is: %s",
+                    line, token, beautifiedChar));
         }
     }
 
-    /**
-     * Check next input character is a white space or not.
-     *
-     * @param c an input character.
-     * @return whether c is a white space or not.
-     */
-    private boolean isWhitespace(char c) {
-        return WHITESPACE_PATTERN.matcher(Character.toString(c)).matches();
+    // TODO: javadoc
+    private boolean match(char c, Pattern pattern) {
+        return pattern.matcher(Character.toString(c)).matches();
+    }
+
+    // TODO: javadoc
+    private void toOutput(OutputStream output, Set<String> tokens, List<String> errors) {
+        PrintStream printStream = new PrintStream(output);
+
+        printStream.println("Tokens:");
+        tokens.forEach(printStream::println);
+
+        printStream.println("\nErrors:");
+        errors.forEach(printStream::println);
+
+        printStream.close();
     }
 
 }

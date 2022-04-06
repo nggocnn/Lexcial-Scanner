@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.util.Objects;
 
 public class App {
+
+    @SuppressWarnings("java:S899")
     public static void main(String[] args) throws IOException {
         InputStream dfaStream = ClassLoader.getSystemResourceAsStream("dfa.dat");
         LexicalScanner scanner = new LexicalScanner(dfaStream);
@@ -17,7 +19,7 @@ public class App {
         String outputPath =
                 Objects.requireNonNull(App.class.getResource("")).getFile() + "output.txt";
         File outputFile = new File(outputPath);
-        boolean newFile = outputFile.createNewFile();
+        outputFile.createNewFile();
         OutputStream outputStream = new FileOutputStream(outputFile);
 
         scanner.scan(inputCodeStream, outputStream);

@@ -8,10 +8,10 @@ import java.util.List;
  */
 public class State {
 
-    private boolean isEnd; // set this state to be end state
-    private boolean haveNextState; // set this state to have next state
+    private boolean isEnd;
+    private boolean haveNextState;
     private String stateName;
-    private List<Transition> transitions = new ArrayList<>(); // transitions list
+    private List<Transition> transitions = new ArrayList<>();
 
     /**
      * State Constructor.
@@ -30,7 +30,7 @@ public class State {
      * Get next state with input character.
      *
      * @param c input character.
-     * @return next state in transition graph or null if next state is unavailable.
+     * @return next state in transition graph or {@code null} if next state is unavailable.
      */
     public State nextState(char c) {
         Transition transition =
@@ -38,11 +38,6 @@ public class State {
         return transition != null ? transition.getNextState() : null;
     }
 
-    /**
-     * Check end state.
-     *
-     * @return whether state is end state or not.
-     */
     public boolean isEnd() {
         return isEnd;
     }
@@ -51,13 +46,10 @@ public class State {
         return haveNextState;
     }
 
-    public String stateName() { return stateName; }
+    public String getStateName() {
+        return stateName;
+    }
 
-    /**
-     * Add transition input into transitions list.
-     *
-     * @param transition transition input.
-     */
     public void addTransition(Transition transition) {
         transitions.add(transition);
     }

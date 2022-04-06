@@ -13,7 +13,7 @@ int main() {
 	float r = exampleFunction(c, d);
 	float a = 1;
 	string s = "ab
-	c";
+    c";
 	"abc\basdfa"
 	"abc\fasdfa"
 	"abc\nasdfa"
