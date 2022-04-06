@@ -1,6 +1,11 @@
 package com.lewwcom.lexicalscanner;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.PushbackReader;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -117,12 +122,13 @@ public class LexicalScanner {
      * @param currentToken current token.
      * @param nextChar next character.
      */
-    private void handleNoNextState(State currentState, String currentToken, char nextChar, PrintStream printStream) {
+    private void handleNoNextState(State currentState, String currentToken, char nextChar,
+            PrintStream printStream) {
         if (currentState.isEnd()) {
             String beautifiedToken = currentToken.replace("\n", "\\n");
             System.out.printf("- %s (%s)%n", beautifiedToken, currentState.stateName());
             printStream.printf("%s (%s)%n", beautifiedToken, currentState.stateName());
-        } else if (!isWhitespace(nextChar)) {
+        } else if (!(isWhitespace(nextChar) && currentState == initialState)) {
             System.err.println("Error: current string is '" + currentToken + "', but next char is "
                     + nextChar);
         }
