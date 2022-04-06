@@ -14,5 +14,12 @@ int main() {
 	float a = 1;
 	string s = "ab
 	c";
+	"abc\basdfa"
+	"abc\fasdfa"
+	"abc\nasdfa"
+	"abc\tasdfa"
+	"abc\'asdfa"
+	"abc\"asdfa"
+	"abc\\asdfa"
 	return 0;
 }

@@ -1,6 +1,11 @@
 package com.lewwcom.lexicalscanner;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.PushbackReader;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -30,6 +35,10 @@ public class LexicalScanner {
         int[] endStates = Stream.of(endStatesLine.split("\\s")).mapToInt(Integer::parseInt).sorted()
                 .toArray();
 
+        // Get all end states' name
+        String endStatesNamesLine = scanner.nextLine();
+        String[] endStatesNames = endStatesNamesLine.split("\\s");
+
         // Get all states that have next states
         String haveNextStatesLine = scanner.nextLine();
         int[] haveNextStates = Stream.of(haveNextStatesLine.split("\\s"))
@@ -38,9 +47,11 @@ public class LexicalScanner {
         // Search and set which state is an end state
         State[] states = new State[totalStates];
         Arrays.setAll(states, i -> {
-            boolean isEnd = Arrays.binarySearch(endStates, i) >= 0;
+            int endStateIndex = Arrays.binarySearch(endStates, i);
+            boolean isEnd = endStateIndex >= 0;
             boolean haveNextState = Arrays.binarySearch(haveNextStates, i) >= 0;
-            return new State(isEnd, haveNextState);
+            String stateName = isEnd ? endStatesNames[endStateIndex] : "invalid";
+            return new State(isEnd, haveNextState, stateName);
         });
 
         // Set initial state
@@ -111,11 +122,13 @@ public class LexicalScanner {
      * @param currentToken current token.
      * @param nextChar next character.
      */
-    private void handleNoNextState(State currentState, String currentToken, char nextChar, PrintStream printStream) {
+    private void handleNoNextState(State currentState, String currentToken, char nextChar,
+            PrintStream printStream) {
         if (currentState.isEnd()) {
-            System.out.println("- " + currentToken.replace("\n", "\\n"));
-            printStream.println(currentToken.replace("\n", "\\n"));
-        } else if (!isWhitespace(nextChar)) {
+            String beautifiedToken = currentToken.replace("\n", "\\n");
+            System.out.printf("- %s (%s)%n", beautifiedToken, currentState.stateName());
+            printStream.printf("%s (%s)%n", beautifiedToken, currentState.stateName());
+        } else if (!(isWhitespace(nextChar) && currentState == initialState)) {
             System.err.println("Error: current string is '" + currentToken + "', but next char is "
                     + nextChar);
         }
