@@ -1,31 +1,26 @@
 package com.lewwcom.lexicalscanner;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Objects;
 
 public class App {
     public static void main(String[] args) throws IOException {
-        LexicalScanner scanner =
-                new LexicalScanner(ClassLoader.getSystemResourceAsStream("dfa.dat"));
+        InputStream dfaStream = ClassLoader.getSystemResourceAsStream("dfa.dat");
+        LexicalScanner scanner = new LexicalScanner(dfaStream);
 
-        String input =
-                "float exampleFunction(boolean var1, int var2) {\n" +
-                        "\tif(var1) {\n" +
-                        "\t\treturn (float)var2;\n" +
-                        "\t} else {\n" +
-                        "\t\treturn 94e-1;\n" +
-                        "\t}\n" +
-                        "}\n" +
-                        "\n" +
-                        "int main() {\n" +
-                        "\tboolean b = true;\n" +
-                        "\tboolean c = !b;\n" +
-                        "\tint d = 4420;\n" +
-                        "\tfloat r = exampleFunction(c, d);\n" +
-                        "\treturn 0;\n" +
-                        "}";
-        System.out.println("Input: " + input);
-        scanner.scan(new ByteArrayInputStream(input.getBytes()));
+        InputStream inputCodeStream = ClassLoader.getSystemResourceAsStream("sample.c");
+
+        String outputPath =
+                Objects.requireNonNull(App.class.getResource("")).getFile() + "output.txt";
+        File outputFile = new File(outputPath);
+        boolean newFile = outputFile.createNewFile();
+        OutputStream outputStream = new FileOutputStream(outputFile);
+
+        scanner.scan(inputCodeStream, outputStream);
     }
 
 }
