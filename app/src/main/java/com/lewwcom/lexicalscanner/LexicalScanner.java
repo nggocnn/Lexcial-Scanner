@@ -106,7 +106,7 @@ public class LexicalScanner {
                     continue;
                 }
             }
-            if (match(c, VERTICAL_WHITESPACE_PATTERN)) {
+            if (isLineTerminator(c, reader)) {
                 ++line;
             }
         }
@@ -114,11 +114,15 @@ public class LexicalScanner {
             handleNoNextState(state, token.toString(), Character.MIN_VALUE, line, tokens, errors);
         }
 
+        toOutput(System.out, tokens, errors);
         toOutput(output, tokens, errors);
         reader.close();
     }
 
-    // TODO: javadoc
+    /**
+     * When transition is not exist for pair of <code>state</code> and <code>nextChar</code>,
+     * determine whether this <code>state</code> is ending state or not and act accordingly.
+     */
     private void handleNoNextState(State state, String token, char nextChar, int line,
             Set<String> tokens, List<String> errors) {
         if (state.isEnd()) {
@@ -126,18 +130,41 @@ public class LexicalScanner {
             tokens.add(String.format("%s (%s)", beautifiedToken, state.getStateName()));
 
         } else if (!(match(nextChar, WHITESPACE_PATTERN) && state == initialState)) {
-            String beautifiedChar = Character.toString(nextChar).replace("\n", "\\n");
+            String c = match(nextChar, VERTICAL_WHITESPACE_PATTERN) ? "newline"
+                    : Character.toString(nextChar);
             errors.add(String.format("Error[Ln %d]: current string is: '%s', but next char is: %s",
-                    line, token, beautifiedChar));
+                    line, token, c));
         }
     }
 
-    // TODO: javadoc
+    /**
+     * Recognized line terminators:
+     * <ul>
+     * <li>A newline (line feed) character ('\n'),
+     * <li>A carriage-return character followed immediately by a newline character ("\r\n"),
+     * <li>A standalone carriage-return character ('\r'),
+     * <li>A next-line character ('\u0085'),
+     * <li>A line-separator character ('\u2028'), or
+     * <li>A paragraph-separator character ('\u2029').
+     * </ul>
+     */
+    private boolean isLineTerminator(char currentChar, PushbackReader reader) throws IOException {
+        if (currentChar == '\r') {
+            int c = reader.read();
+            if (c == -1 || (char) c == '\n') {
+                return true;
+            }
+            reader.unread(c);
+            return true;
+        }
+        return match(currentChar, VERTICAL_WHITESPACE_PATTERN);
+    }
+
+    /** Match <code>c</code> against pattern <code>pattern</code>. */
     private boolean match(char c, Pattern pattern) {
         return pattern.matcher(Character.toString(c)).matches();
     }
 
-    // TODO: javadoc
     private void toOutput(OutputStream output, Set<String> tokens, List<String> errors) {
         PrintStream printStream = new PrintStream(output);
 

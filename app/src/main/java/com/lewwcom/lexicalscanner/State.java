@@ -30,7 +30,7 @@ public class State {
      * Get next state with input character.
      *
      * @param c input character.
-     * @return next state in transition graph or {@code null} if next state is unavailable.
+     * @return next state in transition graph or <code>null</code> if next state is unavailable.
      */
     public State nextState(char c) {
         Transition transition =
