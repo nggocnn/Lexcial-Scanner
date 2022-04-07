@@ -17,7 +17,7 @@ public class App {
         InputStream inputCodeStream = ClassLoader.getSystemResourceAsStream("sample.c");
 
         String outputPath =
-                Objects.requireNonNull(App.class.getResource("")).getFile() + "output.txt";
+                Objects.requireNonNull(App.class.getResource("")).getFile() + "output.vctok";
         File outputFile = new File(outputPath);
         outputFile.createNewFile();
         OutputStream outputStream = new FileOutputStream(outputFile);
